@@ -1,0 +1,376 @@
+{
+  "name": "SMCA",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "*/5 * * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a7fb94b7-fe3d-434c-abfc-9b80e46ef4ad",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"model\": \"llama-3.1-8b-instant\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a social media content creator who writes engaging posts.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Generate a LinkedIn post about AI in marketing. Include: 1 caption, 5 hashtags, and a short hook.\"\n    }\n  ],\n  \"temperature\": 0.7\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "29049dbf-88fd-413d-8d13-29b47c305b16",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f4581fe2-204b-48ff-903e-cb9955a8d48b",
+              "name": "Topic",
+              "value": "AI Marketing Post",
+              "type": "string"
+            },
+            {
+              "id": "08df3fae-f9aa-41fb-8e6c-bb5e9ba9e0b3",
+              "name": "Platform",
+              "value": "LinkedIn",
+              "type": "string"
+            },
+            {
+              "id": "0a5788da-f34e-4f88-a593-92ab288a888e",
+              "name": "Post",
+              "value": "AI Marketing Post: Automation is changing the world of business.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "922d0a86-e2a8-4e64-9d36-fa1f43058afe",
+      "name": "Edit Fields",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "5993344169",
+        "message": "=🚀 New Post for Approval:\n\n{{$json[\"text\"]}}\n\nDo you approve this post?",
+        "approvalOptions": {
+          "values": {}
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        0
+      ],
+      "id": "05f333c4-5482-413e-b94f-42857c2b0364",
+      "name": "Send message and wait for response",
+      "webhookId": "b619d094-0fc1-48f5-b757-d83164f5538e",
+      "credentials": {
+        "telegramApi": {
+          "id": "gh6P2COqzWxvNOjw",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0b07fbe4-d555-4765-a066-966ecc563210",
+              "leftValue": "={{$json[\"data\"][\"approved\"]}}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        528,
+        240
+      ],
+      "id": "ccfd61d3-3791-437d-919a-20ddcc871e7e",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "10_49k_uzwxM9rzEUcPGO4cER6CNKsEPn2jTvyNFd_fc",
+          "mode": "list",
+          "cachedResultName": "Social Media Automation spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_49k_uzwxM9rzEUcPGO4cER6CNKsEPn2jTvyNFd_fc/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/10_49k_uzwxM9rzEUcPGO4cER6CNKsEPn2jTvyNFd_fc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Topic": "AI Marketing Post",
+            "Platform": "LinkedIn",
+            "Content": "={{ $('HTTP Request').item.json.choices[0].message.content }}",
+            "Status": "Approved",
+            "Approval": "Approved"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Topic",
+              "displayName": "Topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Platform",
+              "displayName": "Platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Content",
+              "displayName": "Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Approval",
+              "displayName": "Approval",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        400,
+        -160
+      ],
+      "id": "b769400f-7dcb-48c3-a7b7-7a1f38b7fcc3",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "A73sB0rEfvH8gh83",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a social media content writer.\n\nCreate a LinkedIn post about:\n{{$json[\"Topic\"]}}\n\nPlatform:\n{{$json[\"Platform\"]}}\n\nReference:\n{{$json[\"Post\"]}}\n\nInclude:\n- Hook\n- Caption\n- 5 hashtags",
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        624,
+        0
+      ],
+      "id": "61c72c7c-48ee-47af-ad6c-fa3eab82e504",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        784,
+        144
+      ],
+      "id": "5d029de1-d20a-49cf-8499-a3176585689c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "D8LeFt6oq2hGtBZU",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c7fc645b-f234-4c7c-8d71-f2f5d333569c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ca31e85b4bff1e1c5a0bd86f564f6efc466b8676c9fc278d7017cf08d1f9589d"
+  },
+  "id": "ndaI5sZd1dgY6ijt",
+  "tags": []
+}
